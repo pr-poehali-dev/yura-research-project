@@ -87,6 +87,21 @@ export default function Index() {
   const [editingToc, setEditingToc] = useState(false);
   const [editToc, setEditToc] = useState<TocEntry[]>([]);
 
+  // Title page state
+  const [titleData, setTitleData] = useState({
+    student: "Иванов Иван Иванович",
+    group: "А–11",
+    specialty: "35.02.05 Агрономия",
+    topic: "«ТЕМА»",
+    discipline: "обществознанию",
+    supervisor: "Полторацкая Л. А.",
+    city: "Ейск",
+    year: "2026",
+    projectType: "ИНДИВИДУАЛЬНЫЙ ПРОЕКТ",
+  });
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editTitle, setEditTitle] = useState({ ...titleData });
+
   const sections = ["all", ...Array.from(new Set(tasks.map(t => t.section)))];
   const filteredTasks = tasks.filter(t =>
     (filterStatus === "all" || t.status === filterStatus) &&
@@ -248,77 +263,156 @@ export default function Index() {
 
         {/* ═══ ТИТУЛЬНЫЙ ЛИСТ ═══════════════════════════════════════════════ */}
         {activeTab === "title" && (
-          <div className="animate-fade-in max-w-2xl mx-auto">
+          <div className="animate-fade-in">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-[15px] font-semibold text-gray-900">Титульный лист</h2>
-              <span className="text-[11px] text-gray-400 border border-gray-200 rounded px-2 py-0.5">Страница 1 (не нумеруется)</span>
-            </div>
-
-            {/* A4 Preview */}
-            <div
-              className="bg-white border border-gray-200 shadow-sm mx-auto"
-              style={{
-                width: "100%", maxWidth: "595px",
-                padding: "56px 42px 42px 84px", /* top 2cm, right 1.5cm, bottom 2cm, left 3cm */
-                fontFamily: "'Times New Roman', Georgia, serif",
-                fontSize: "14px", lineHeight: "1.5",
-              }}
-            >
-              {/* Шапка */}
-              <div className="text-center mb-2" style={{ fontSize: "13px" }}>
-                <p style={{ textTransform: "uppercase", fontWeight: "normal" }}>Министерство образования и науки</p>
-                <p>Краснодарского края</p>
-                <p>Государственное бюджетное профессиональное</p>
-                <p>образовательное учреждение Краснодарского края</p>
-                <p>«Ейский полипрофильный колледж»</p>
-                <p>(ГБПОУ КК ЕПК)</p>
-              </div>
-
-              <div className="text-center mt-1 mb-3" style={{ fontSize: "13px" }}>
-                <p>Отделение Сельского хозяйства и строительных технологий</p>
-                <p>Специальность 35.02.05 Агрономия</p>
-              </div>
-
-              {/* Студент */}
-              <div className="flex justify-end mb-6" style={{ fontSize: "13px" }}>
-                <div>
-                  <p>Студент А–11 группы</p>
-                  <div style={{ borderBottom: "1px solid #999", width: "220px", margin: "18px 0 4px" }} />
-                  <p>Иванов Иван Иванович</p>
-                </div>
-              </div>
-
-              {/* Тема */}
-              <div className="text-center mb-2" style={{ fontWeight: "bold", fontSize: "14px" }}>
-                <p>«ТЕМА»</p>
-              </div>
-
-              <div className="text-center mb-8" style={{ fontSize: "13px" }}>
-                <p>ИНДИВИДУАЛЬНЫЙ ПРОЕКТ</p>
-                <p>по обществознанию</p>
-              </div>
-
-              {/* Руководитель */}
-              <div className="flex justify-end mb-16" style={{ fontSize: "13px" }}>
-                <div>
-                  <p>Научный руководитель:</p>
-                  <div style={{ borderBottom: "1px solid #999", width: "180px", margin: "18px 0 4px" }} />
-                  <p>Полторацкая Л. А.</p>
-                </div>
-              </div>
-
-              {/* Подвал */}
-              <div className="text-center" style={{ fontSize: "13px" }}>
-                <p>Ейск, 2026 г.</p>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-gray-400 border border-gray-200 rounded px-2 py-0.5">Страница 1 (не нумеруется)</span>
+                {!editingTitle ? (
+                  <button onClick={() => { setEditTitle({ ...titleData }); setEditingTitle(true); }}
+                    className="flex items-center gap-1.5 text-[12px] text-gray-500 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                    <Icon name="Pencil" size={12} />
+                    Редактировать
+                  </button>
+                ) : (
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingTitle(false)}
+                      className="text-[12px] text-gray-400 border border-gray-200 rounded-lg px-3 py-1.5 hover:bg-gray-50 transition-colors">
+                      Отмена
+                    </button>
+                    <button onClick={() => { setTitleData({ ...editTitle }); setEditingTitle(false); }}
+                      className="flex items-center gap-1.5 text-[12px] bg-gray-900 text-white rounded-lg px-3 py-1.5 hover:bg-gray-700 transition-colors">
+                      <Icon name="Check" size={12} />
+                      Сохранить
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
-            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 flex gap-2.5">
-              <Icon name="Info" size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
-              <p className="text-[12px] text-amber-700 leading-relaxed">
-                Титульный лист — страница №1, но <strong>не нумеруется</strong>. Поля: левое 3 см, правое 1,5 см, верх/низ 2 см.
-                Все сокращения (ГБПОУ КК ЕПК и др.) должны быть расшифрованы в тексте работы.
-              </p>
+            <div className="flex gap-6 flex-col lg:flex-row">
+              {/* Edit panel */}
+              {editingTitle && (
+                <div className="lg:w-72 flex-shrink-0 animate-fade-in">
+                  <div className="bg-white border border-gray-100 rounded-xl p-5 space-y-4 sticky top-20">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Данные студента</p>
+                    {[
+                      { label: "ФИО студента",     key: "student" },
+                      { label: "Группа",            key: "group" },
+                      { label: "Специальность",     key: "specialty" },
+                    ].map(f => (
+                      <div key={f.key}>
+                        <label className="text-[11px] text-gray-400 mb-1 block">{f.label}</label>
+                        <input
+                          value={editTitle[f.key as keyof typeof editTitle]}
+                          onChange={e => setEditTitle(p => ({ ...p, [f.key]: e.target.value }))}
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[12px] outline-none focus:border-gray-400 transition-colors"
+                        />
+                      </div>
+                    ))}
+
+                    <div className="border-t border-gray-100 pt-4">
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Проект</p>
+                      {[
+                        { label: "Тема проекта",     key: "topic" },
+                        { label: "Тип работы",        key: "projectType" },
+                        { label: "Дисциплина (по ...)", key: "discipline" },
+                      ].map(f => (
+                        <div key={f.key} className="mb-3">
+                          <label className="text-[11px] text-gray-400 mb-1 block">{f.label}</label>
+                          <input
+                            value={editTitle[f.key as keyof typeof editTitle]}
+                            onChange={e => setEditTitle(p => ({ ...p, [f.key]: e.target.value }))}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[12px] outline-none focus:border-gray-400 transition-colors"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-4">
+                      <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3">Руководитель и место</p>
+                      {[
+                        { label: "ФИО руководителя", key: "supervisor" },
+                        { label: "Город",             key: "city" },
+                        { label: "Год",               key: "year" },
+                      ].map(f => (
+                        <div key={f.key} className="mb-3">
+                          <label className="text-[11px] text-gray-400 mb-1 block">{f.label}</label>
+                          <input
+                            value={editTitle[f.key as keyof typeof editTitle]}
+                            onChange={e => setEditTitle(p => ({ ...p, [f.key]: e.target.value }))}
+                            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[12px] outline-none focus:border-gray-400 transition-colors"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* A4 Preview */}
+              <div className="flex-1">
+                <div
+                  className="bg-white border border-gray-200 shadow-sm mx-auto"
+                  style={{
+                    width: "100%", maxWidth: "595px",
+                    padding: "56px 42px 42px 84px",
+                    fontFamily: "'Times New Roman', Georgia, serif",
+                    fontSize: "14px", lineHeight: "1.5",
+                  }}
+                >
+                  <div className="text-center mb-2" style={{ fontSize: "13px" }}>
+                    <p style={{ textTransform: "uppercase" }}>Министерство образования и науки</p>
+                    <p>Краснодарского края</p>
+                    <p>Государственное бюджетное профессиональное</p>
+                    <p>образовательное учреждение Краснодарского края</p>
+                    <p>«Ейский полипрофильный колледж»</p>
+                    <p>(ГБПОУ КК ЕПК)</p>
+                  </div>
+
+                  <div className="text-center mt-1 mb-3" style={{ fontSize: "13px" }}>
+                    <p>Отделение Сельского хозяйства и строительных технологий</p>
+                    <p>Специальность {editingTitle ? editTitle.specialty : titleData.specialty}</p>
+                  </div>
+
+                  <div className="flex justify-end mb-6" style={{ fontSize: "13px" }}>
+                    <div>
+                      <p>Студент {editingTitle ? editTitle.group : titleData.group} группы</p>
+                      <div style={{ borderBottom: "1px solid #999", width: "220px", margin: "18px 0 4px" }} />
+                      <p>{editingTitle ? editTitle.student : titleData.student}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center mb-2" style={{ fontWeight: "bold", fontSize: "14px" }}>
+                    <p>{editingTitle ? editTitle.topic : titleData.topic}</p>
+                  </div>
+
+                  <div className="text-center mb-8" style={{ fontSize: "13px" }}>
+                    <p>{editingTitle ? editTitle.projectType : titleData.projectType}</p>
+                    <p>по {editingTitle ? editTitle.discipline : titleData.discipline}</p>
+                  </div>
+
+                  <div className="flex justify-end mb-16" style={{ fontSize: "13px" }}>
+                    <div>
+                      <p>Научный руководитель:</p>
+                      <div style={{ borderBottom: "1px solid #999", width: "180px", margin: "18px 0 4px" }} />
+                      <p>{editingTitle ? editTitle.supervisor : titleData.supervisor}</p>
+                    </div>
+                  </div>
+
+                  <div className="text-center" style={{ fontSize: "13px" }}>
+                    <p>{editingTitle ? editTitle.city : titleData.city}, {editingTitle ? editTitle.year : titleData.year} г.</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 flex gap-2.5" style={{ maxWidth: "595px" }}>
+                  <Icon name="Info" size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-[12px] text-amber-700 leading-relaxed">
+                    Титульный лист — страница №1, но <strong>не нумеруется</strong>. Поля: левое 3 см, правое 1,5 см, верх/низ 2 см.
+                    Все сокращения (ГБПОУ КК ЕПК и др.) должны быть расшифрованы в тексте работы.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
