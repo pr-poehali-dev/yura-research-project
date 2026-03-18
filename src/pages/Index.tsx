@@ -44,7 +44,61 @@ const NAV_ITEMS = [
   { id: "tasks",    label: "Задачи",         icon: "CheckSquare" },
   { id: "title",    label: "Титульный лист", icon: "FileText" },
   { id: "contents", label: "Оглавление",     icon: "List" },
+  { id: "writing",  label: "Написание",      icon: "PenLine" },
   { id: "docs",     label: "Требования",     icon: "BookOpen" },
+];
+
+// ── Клише ───────────────────────────────────────────────────────────────────
+const THEORY_CLICHES = [
+  { group: "Определения и понятия", items: [
+    "Ключевые понятия для нашего исследования – это …",
+    "… называется …",
+    "На официальном сайте … мы нашли следующее определение термина … «…»",
+    "Иванов В.В. в книге … определяет понятие … как …",
+    "Петров В.В. понимает под термином …",
+    "Сидоров С.С. рассматривает … как …",
+    "Андреев А.А. в книге «…» дает следующее определение …",
+    "Сайт … предлагает следующее определение понятия …",
+  ]},
+  { group: "Ссылки на источники", items: [
+    "В статье Иванова «…» в журнале «…» говорится, что …",
+    "Из книги … мы узнали, что …",
+    "Как пишет Иванов И.И. в статье «…», …",
+    "По мнению Иванова В.В. …",
+    "История вопроса подробно освещена на страницах современных энциклопедий, например …, а также на сайте …",
+  ]},
+  { group: "Логические связки", items: [
+    "Принято считать, что …",
+    "Общеизвестным считается …",
+    "Вначале обратимся к истории вопроса …",
+    "Впервые …",
+    "Возможно, это связано …",
+    "Кроме того, …",
+    "Интересно, что …",
+    "Распространённым является мнение, что …",
+    "При этом необходимо подчеркнуть, что …",
+  ]},
+];
+
+const SURVEY_CLICHES = [
+  { group: "Описание опроса", items: [
+    "Для того, чтобы выяснить … мы решили провести опрос … среди студентов … группы / преподавателей.",
+    "Опрос проводился посредством анкетирования / опроса в социальных сетях.",
+    "В опросе приняли участие … студентов и … преподавателей.",
+    "Респондентам были заданы следующие вопросы: …",
+    "Исследование проводилось на материале …",
+    "В качестве материала для исследования были взяты …",
+    "Источником примеров стали …",
+  ]},
+  { group: "Анализ результатов", items: [
+    "Затем я обработал(а) анкеты и получил(а) следующие результаты.",
+    "На вопрос: «…» … % опрошенных ответили положительно.",
+    "На вопрос: «…» … % опрошенных ответили «да» / «нет».",
+    "Таким образом, из … представленных … опрошенные правильно смогли только …",
+    "Остальные … либо не смогли …, либо …",
+    "Результаты анкетирования показали, что …",
+    "Проведённое исследование позволяет сделать вывод о том, что …",
+  ]},
 ];
 
 // ── Оглавление ──────────────────────────────────────────────────────────────
@@ -81,6 +135,15 @@ export default function Index() {
     title: "", description: "", assignee: "Иванов И.И.", dueDate: "",
     priority: "medium" as TaskPriority, section: "Основная часть", status: "todo" as TaskStatus,
   });
+
+  // Writing helpers
+  const [writingTab, setWritingTab] = useState<"theory" | "survey">("theory");
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+  const copyCliché = (text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopiedText(text);
+    setTimeout(() => setCopiedText(null), 1800);
+  };
 
   // TOC state
   const [toc, setToc] = useState<TocEntry[]>(INITIAL_TOC);
@@ -513,6 +576,94 @@ export default function Index() {
                 Слово <strong>ОГЛАВЛЕНИЕ</strong> — заглавными буквами, по центру, без точки. Главы — заглавными и жирным. Подразделы — строчными. Каждый раздел начинается с новой страницы.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* ═══ НАПИСАНИЕ ════════════════════════════════════════════════════ */}
+        {activeTab === "writing" && (
+          <div className="animate-fade-in max-w-3xl">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-[15px] font-semibold text-gray-900">Клише для написания</h2>
+              <span className="text-[11px] text-gray-400">Нажмите на клише — скопируется в буфер</span>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex gap-1 bg-white border border-gray-100 rounded-lg p-1 mb-6 w-fit">
+              <button onClick={() => setWritingTab("theory")}
+                className={`px-4 py-1.5 text-[12px] font-medium rounded-md transition-all ${writingTab === "theory" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}>
+                Теоретическая часть
+              </button>
+              <button onClick={() => setWritingTab("survey")}
+                className={`px-4 py-1.5 text-[12px] font-medium rounded-md transition-all ${writingTab === "survey" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"}`}>
+                Анкетирование
+              </button>
+            </div>
+
+            {/* Info block */}
+            {writingTab === "theory" && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex gap-2.5 mb-5">
+                <Icon name="BookOpen" size={14} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <p className="text-[12px] text-blue-700 leading-relaxed">
+                  Теоретическая глава — <strong>5–7 страниц</strong>. Содержание должно полностью раскрывать тему и соответствовать всем пунктам оглавления. Вспомогательные материалы — в приложения.
+                </p>
+              </div>
+            )}
+            {writingTab === "survey" && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex gap-2.5 mb-5">
+                <Icon name="BarChart2" size={14} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <p className="text-[12px] text-blue-700 leading-relaxed">
+                  Анкетирование обязательно для всех работ, кроме тех, что включают лабораторный опыт, эксперимент или создание материального объекта.
+                </p>
+              </div>
+            )}
+
+            {/* Clichés */}
+            {(writingTab === "theory" ? THEORY_CLICHES : SURVEY_CLICHES).map((group, gi) => (
+              <div key={gi} className="mb-6">
+                <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-3 flex items-center gap-2">
+                  <span className="w-4 h-px bg-gray-300 inline-block" />
+                  {group.group}
+                </p>
+                <div className="space-y-2">
+                  {group.items.map((text, ti) => (
+                    <button
+                      key={ti}
+                      onClick={() => copyCliché(text)}
+                      className={`w-full text-left bg-white border rounded-xl px-4 py-3 text-[13px] leading-relaxed transition-all group flex items-start justify-between gap-3 ${
+                        copiedText === text
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                          : "border-gray-100 text-gray-700 hover:border-gray-300 hover:shadow-sm"
+                      }`}
+                    >
+                      <span>{text}</span>
+                      <span className="flex-shrink-0 mt-0.5">
+                        {copiedText === text
+                          ? <Icon name="Check" size={13} className="text-emerald-500" />
+                          : <Icon name="Copy" size={13} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+                        }
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Example block */}
+            {writingTab === "survey" && (
+              <div className="mt-4 border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-gray-50 border-b border-gray-200 px-4 py-2.5 flex items-center gap-2">
+                  <Icon name="FileText" size={13} className="text-gray-400" />
+                  <span className="text-[12px] font-semibold text-gray-600">Пример оформления результатов анкетирования</span>
+                </div>
+                <div className="p-4 bg-white text-[12px] text-gray-600 leading-relaxed space-y-2" style={{ fontFamily: "'Times New Roman', Georgia, serif" }}>
+                  <p className="font-bold text-gray-800">Анкетирование и его результаты</p>
+                  <p>В рамках исследовательской работы был проведен опрос среди студентов. При написании работы было опрошено <strong>70 студентов</strong>, 30 (43%) девушек и 40 (57%) юношей в возрасте от 16 до 21 года.</p>
+                  <p>На вопрос: «Посещали ли вы рестораны быстрого питания?» <strong>82% опрошенных</strong> ответили положительно.</p>
+                  <p>На вопрос: «Нравится ли вам еда в таких ресторанах?» <strong>77% опрошенных</strong> ответили «да».</p>
+                  <p>Таким образом, из 12 представленных названий блюд опрошенные правильно перевести смогли только <strong>50% слов</strong>. Остальные либо не смогли перевести, либо перевели неправильно.</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
