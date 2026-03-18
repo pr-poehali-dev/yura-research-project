@@ -45,6 +45,8 @@ const NAV_ITEMS = [
   { id: "title",    label: "Титульный лист", icon: "FileText" },
   { id: "contents", label: "Оглавление",     icon: "List" },
   { id: "writing",  label: "Написание",      icon: "PenLine" },
+  { id: "sources",  label: "Литература",     icon: "BookMarked" },
+  { id: "slides",   label: "Презентация",    icon: "Monitor" },
   { id: "docs",     label: "Требования",     icon: "BookOpen" },
 ];
 
@@ -177,6 +179,53 @@ const CONCLUSION_SECTION_CLICHES = [
   ]},
 ];
 
+// ── Список литературы ────────────────────────────────────────────────────────
+interface Source {
+  id: number;
+  type: "book1" | "book2" | "encyclopedia" | "article" | "web";
+  text: string;
+}
+
+const SOURCE_TEMPLATES = {
+  book1:       "Фамилия, И. О. Название книги [Текст] : вид издания / И. О. Фамилия. – Город : Издательство, Год. – Кол-во с.",
+  book2:       "Фамилия, И. О. Название книги [Текст] : вид издания / И. О. Фамилия, И. О. Фамилия2; под ред. И. О. Фамилия2. – Город : Издательство, Год. – Кол-во с.",
+  encyclopedia:"Название энциклопедии [Текст] / под ред. И. О. Фамилия. – N-е изд. – Город : Издательство, Год. – Кол-во с.",
+  article:     "Фамилия, И. О. Название статьи [Текст] / И. О. Фамилия // Название журнала. – Год. – № N. – С. ХХ–ХХ.",
+  web:         "Название сайта [Электронный ресурс]. – Режим доступа: http://адрес.ру. – ДД.ММ.ГГГГ.",
+};
+
+const SOURCE_TYPE_LABELS: Record<string, string> = {
+  book1:       "Книга (1 автор)",
+  book2:       "Книга (2 автора)",
+  encyclopedia:"Энциклопедия / словарь",
+  article:     "Статья из журнала",
+  web:         "Электронный ресурс",
+};
+
+const SOURCE_EXAMPLES: Source[] = [
+  { id: 1, type: "book1",       text: "Аванесова, Г. А. Сервисная деятельность. Историческая и современная практика, предпринимательство, менеджмент [Текст] : учеб. пособие / Г. А. Аванесова. – М. : Аспект Пресс, 2004. – 318 с." },
+  { id: 2, type: "book2",       text: "Безрукова, Н. Л. Маркетинг в гостиничной индустрии и туризме [Текст] : учебник / Н. Л. Безрукова, В. С. Янкевич; под ред. В. С. Янкевича. – М. : Финансы и статистика, 2003. – 416 с." },
+  { id: 3, type: "encyclopedia", text: "Большой Глоссарий терминов международного туризма [Текст] / под ред. М. Б. Биржакова, В. И. Никифорова. – 3-е изд., доп. и перераб. – СПб. : Герда, 2006. – 936 с." },
+  { id: 4, type: "article",     text: "Алиева, О. Куда ехать с лыжами [Текст] / О. Алиева // Билеты есть. – 2006. – № 12. – С. 29–31." },
+  { id: 5, type: "web",         text: "Официальный сайт федерального агентства по туризму Российской Федерации [Электронный ресурс]. – Режим доступа: http://www.russiatourism.ru. – 08.09.2023." },
+];
+
+// ── Презентация ──────────────────────────────────────────────────────────────
+const PRESENTATION_STRUCTURE = [
+  { step: "Приветствие",                              example: "Здравствуйте! Разрешите представить вам результаты исследовательской работы." },
+  { step: "Представление",                            example: "Меня зовут [ФИО]. Я студент(ка) [группа], специальность [название]. [Учебное заведение]." },
+  { step: "Цель выступления",                         example: "Цель моего выступления — познакомить вас с результатами исследования по теме …" },
+  { step: "Название темы",                            example: "Тема моей работы: «[название темы]»." },
+  { step: "Актуальность",                             example: "Актуальность темы обусловлена тем, что … Данная проблема представляет интерес для …" },
+  { step: "Цель и задачи",                            example: "Цель работы — … Для достижения цели были поставлены следующие задачи: 1) … 2) … 3) …" },
+  { step: "Новые результаты исследования",            example: "В ходе исследования было установлено / выявлено / доказано, что …" },
+  { step: "Выводы по результатам",                    example: "Таким образом, проведённое исследование позволяет сделать следующие выводы: …" },
+  { step: "Дальнейшие шаги",                          example: "В перспективе планируется более детально изучить … а также рассмотреть …" },
+  { step: "Благодарность за внимание",                example: "Спасибо за внимание! Готов(а) ответить на ваши вопросы." },
+  { step: "Ответы на вопросы",                        example: "Благодарю за вопрос. [Ответ на вопрос]." },
+  { step: "Благодарность за интерес",                 example: "Спасибо за интерес к теме и за заданные вопросы!" },
+];
+
 // ── Оглавление ──────────────────────────────────────────────────────────────
 interface TocEntry {
   id: string;
@@ -211,6 +260,25 @@ export default function Index() {
     title: "", description: "", assignee: "Иванов И.И.", dueDate: "",
     priority: "medium" as TaskPriority, section: "Основная часть", status: "todo" as TaskStatus,
   });
+
+  // Sources
+  const [sources, setSources] = useState<Source[]>(SOURCE_EXAMPLES);
+  const [addingSource, setAddingSource] = useState(false);
+  const [newSourceType, setNewSourceType] = useState<Source["type"]>("book1");
+  const [newSourceText, setNewSourceText] = useState("");
+  const [copiedSource, setCopiedSource] = useState<number | null>(null);
+  const copySource = (id: number, text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopiedSource(id);
+    setTimeout(() => setCopiedSource(null), 1800);
+  };
+  const deleteSource = (id: number) => setSources(prev => prev.filter(s => s.id !== id));
+  const saveSource = () => {
+    if (!newSourceText.trim()) return;
+    setSources(prev => [...prev, { id: Date.now(), type: newSourceType, text: newSourceText.trim() }]);
+    setNewSourceText("");
+    setAddingSource(false);
+  };
 
   // Writing helpers
   const [writingTab, setWritingTab] = useState<"theory" | "survey" | "results" | "conclusions" | "conclusion_section">("theory");
@@ -785,6 +853,190 @@ export default function Index() {
           );
         })()}
 
+
+        {/* ═══ СПИСОК ЛИТЕРАТУРЫ ════════════════════════════════════════════ */}
+        {activeTab === "sources" && (
+          <div className="animate-fade-in max-w-3xl">
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="text-[15px] font-semibold text-gray-900">Список использованных источников</h2>
+                <p className="text-[11px] text-gray-400 mt-0.5">Не менее 5 источников · ссылки в тексте в квадратных скобках [1]</p>
+              </div>
+              <button onClick={() => { setNewSourceText(SOURCE_TEMPLATES[newSourceType]); setAddingSource(true); }}
+                className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 rounded-lg text-[12px] font-medium hover:bg-gray-700 transition-colors">
+                <Icon name="Plus" size={13} />
+                Добавить
+              </button>
+            </div>
+
+            {/* Шаблоны */}
+            <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex gap-2.5 mb-5">
+              <Icon name="Info" size={14} className="text-blue-500 flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] text-blue-700 leading-relaxed">
+                Каждый источник в списке должен иметь ссылку в тексте: <strong>[1, с. 45]</strong> или <strong>[2]</strong>.
+                Не включайте работы, которые фактически не использовались.
+              </p>
+            </div>
+
+            {/* Список */}
+            <div className="bg-white border border-gray-100 rounded-xl overflow-hidden mb-5">
+              <div className="bg-gray-50 border-b border-gray-100 px-5 py-3">
+                <p className="text-center font-bold text-[13px] text-gray-900 uppercase tracking-wide" style={{ fontFamily: "'Times New Roman', Georgia, serif" }}>
+                  СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ
+                </p>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {sources.map((s, i) => (
+                  <div key={s.id} className="flex items-start gap-3 px-5 py-3.5 group hover:bg-gray-50 transition-colors">
+                    <span className="text-[12px] text-gray-400 font-medium w-5 flex-shrink-0 mt-0.5">{i + 1}.</span>
+                    <p className="flex-1 text-[12px] text-gray-700 leading-relaxed" style={{ fontFamily: "'Times New Roman', Georgia, serif" }}>
+                      {s.text}
+                    </p>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <button onClick={() => copySource(s.id, s.text)}
+                        className="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200 transition-colors">
+                        {copiedSource === s.id
+                          ? <Icon name="Check" size={11} className="text-emerald-500" />
+                          : <Icon name="Copy" size={11} className="text-gray-400" />}
+                      </button>
+                      <button onClick={() => deleteSource(s.id)}
+                        className="w-6 h-6 flex items-center justify-center rounded hover:bg-red-50 transition-colors">
+                        <Icon name="Trash2" size={11} className="text-gray-300 hover:text-red-400" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {sources.length === 0 && (
+                  <div className="text-center py-8 text-[12px] text-gray-400">Список пуст — добавьте источники</div>
+                )}
+              </div>
+              {sources.length > 0 && sources.length < 5 && (
+                <div className="px-5 py-2.5 bg-amber-50 border-t border-amber-100 flex items-center gap-2">
+                  <Icon name="AlertTriangle" size={12} className="text-amber-500 flex-shrink-0" />
+                  <p className="text-[11px] text-amber-700">Требуется не менее 5 источников. Добавлено: {sources.length}</p>
+                </div>
+              )}
+              {sources.length >= 5 && (
+                <div className="px-5 py-2.5 bg-emerald-50 border-t border-emerald-100 flex items-center gap-2">
+                  <Icon name="CheckCircle2" size={12} className="text-emerald-500 flex-shrink-0" />
+                  <p className="text-[11px] text-emerald-700">Минимум выполнен: {sources.length} источников</p>
+                </div>
+              )}
+            </div>
+
+            {/* Шаблоны оформления */}
+            <div className="border border-gray-100 rounded-xl overflow-hidden">
+              <div className="bg-gray-50 border-b border-gray-100 px-5 py-3 flex items-center gap-2">
+                <Icon name="BookOpen" size={13} className="text-gray-400" />
+                <span className="text-[12px] font-semibold text-gray-600">Шаблоны оформления по ГОСТ</span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {(Object.entries(SOURCE_TEMPLATES) as [Source["type"], string][]).map(([type, tmpl]) => (
+                  <div key={type} className="px-5 py-3.5 group hover:bg-gray-50 transition-colors">
+                    <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">{SOURCE_TYPE_LABELS[type]}</p>
+                    <p className="text-[12px] text-gray-600 leading-relaxed italic" style={{ fontFamily: "'Times New Roman', Georgia, serif" }}>{tmpl}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Модал добавления */}
+            {addingSource && (
+              <div className="fixed inset-0 z-50 bg-black/25 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+                onClick={() => setAddingSource(false)}>
+                <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+                  <div className="flex items-center justify-between p-5 border-b border-gray-100">
+                    <h3 className="text-[13px] font-semibold text-gray-900">Добавить источник</h3>
+                    <button onClick={() => setAddingSource(false)} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200">
+                      <Icon name="X" size={12} />
+                    </button>
+                  </div>
+                  <div className="p-5 space-y-3">
+                    <div>
+                      <label className="text-[11px] text-gray-400 mb-1.5 block">Тип источника</label>
+                      <select value={newSourceType}
+                        onChange={e => { const t = e.target.value as Source["type"]; setNewSourceType(t); setNewSourceText(SOURCE_TEMPLATES[t]); }}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[13px] outline-none focus:border-gray-400">
+                        {(Object.entries(SOURCE_TYPE_LABELS) as [Source["type"], string][]).map(([k, v]) => (
+                          <option key={k} value={k}>{v}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 mb-1.5 block">Библиографическое описание</label>
+                      <textarea value={newSourceText} rows={4}
+                        onChange={e => setNewSourceText(e.target.value)}
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-[12px] outline-none focus:border-gray-400 resize-none leading-relaxed"
+                        style={{ fontFamily: "'Times New Roman', Georgia, serif" }} />
+                    </div>
+                    <button onClick={saveSource} disabled={!newSourceText.trim()}
+                      className="w-full bg-gray-900 text-white py-2.5 rounded-lg text-[13px] font-medium hover:bg-gray-700 transition-colors disabled:opacity-40">
+                      Добавить в список
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══ ПРЕЗЕНТАЦИЯ ══════════════════════════════════════════════════ */}
+        {activeTab === "slides" && (
+          <div className="animate-fade-in max-w-3xl">
+            <h2 className="text-[15px] font-semibold text-gray-900 mb-5">Требования к презентации</h2>
+
+            {/* 5 правил */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
+              {[
+                { num: "01", title: "Структура",          text: "Каждый слайд логично вытекает из предыдущего. Проверка: прочитайте только заголовки — смысл должен быть понятен." },
+                { num: "02", title: "Краткость",           text: "Оптимальный объём — до 12 слайдов. Краткость — сестра убедительности." },
+                { num: "03", title: "Минимум текста",      text: "Весь лишний текст — в устное выступление или замените иллюстрациями, графиками, схемами." },
+                { num: "04", title: "Единый стиль",        text: "Одинаковый шрифт, сходная цветовая гамма на всех слайдах. Чем проще — тем лучше." },
+                { num: "05", title: "Качество изображений", text: "Только сжатые, качественные изображения. Большой размер файла — признак плохой презентации." },
+              ].map((r, i) => (
+                <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 flex gap-3 animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
+                  <span className="text-[11px] font-bold text-gray-300 flex-shrink-0 mt-0.5">{r.num}</span>
+                  <div>
+                    <p className="text-[13px] font-semibold text-gray-900 mb-0.5">{r.title}</p>
+                    <p className="text-[12px] text-gray-500 leading-relaxed">{r.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Структура выступления */}
+            <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+              <div className="bg-gray-50 border-b border-gray-100 px-5 py-3 flex items-center gap-2">
+                <Icon name="Presentation" size={13} className="text-gray-400" />
+                <span className="text-[12px] font-semibold text-gray-600">Структура устного выступления</span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {PRESENTATION_STRUCTURE.map((item, i) => (
+                  <div key={i} className="px-5 py-3.5 flex gap-4 group hover:bg-gray-50 transition-colors">
+                    <div className="flex-shrink-0 w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center mt-0.5">
+                      <span className="text-[10px] font-bold text-gray-500">{i + 1}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[12px] font-semibold text-gray-800 mb-1">{item.step}</p>
+                      <p className="text-[12px] text-gray-500 leading-relaxed italic">{item.example}</p>
+                    </div>
+                    <button onClick={() => { navigator.clipboard.writeText(item.example).catch(() => {}); }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 w-6 h-6 flex items-center justify-center rounded hover:bg-gray-200">
+                      <Icon name="Copy" size={11} className="text-gray-400" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex gap-2.5">
+              <Icon name="Info" size={14} className="text-amber-600 flex-shrink-0 mt-0.5" />
+              <p className="text-[12px] text-amber-700 leading-relaxed">
+                Мультимедийная презентация — <strong>обязательное условие</strong> защиты проекта по предмету «Основы проектно-исследовательской деятельности».
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* ═══ ТРЕБОВАНИЯ ═══════════════════════════════════════════════════ */}
         {activeTab === "docs" && (
