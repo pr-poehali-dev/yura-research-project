@@ -100,3 +100,25 @@
     transform: scale(1);
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-sources,
+  #print-sources * {
+    visibility: visible;
+  }
+  #print-sources {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 2cm 1.5cm 2cm 3cm;
+    font-family: "Times New Roman", Georgia, serif;
+    font-size: 14pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+}

@@ -862,11 +862,37 @@ export default function Index() {
                 <h2 className="text-[15px] font-semibold text-gray-900">Список использованных источников</h2>
                 <p className="text-[11px] text-gray-400 mt-0.5">Не менее 5 источников · ссылки в тексте в квадратных скобках [1]</p>
               </div>
-              <button onClick={() => { setNewSourceText(SOURCE_TEMPLATES[newSourceType]); setAddingSource(true); }}
-                className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 rounded-lg text-[12px] font-medium hover:bg-gray-700 transition-colors">
-                <Icon name="Plus" size={13} />
-                Добавить
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    const content = `СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ\n\n${sources.map((s, i) => `${i + 1}. ${s.text}`).join("\n\n")}`;
+                    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url; a.download = "список_источников.txt"; a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-[12px] font-medium hover:bg-gray-50 transition-colors">
+                  <Icon name="Download" size={13} />
+                  Скачать
+                </button>
+                <button
+                  onClick={() => {
+                    const el = document.getElementById("print-sources");
+                    if (el) el.style.display = "block";
+                    window.print();
+                    setTimeout(() => { if (el) el.style.display = "none"; }, 500);
+                  }}
+                  className="flex items-center gap-1.5 border border-gray-200 text-gray-600 px-3 py-2 rounded-lg text-[12px] font-medium hover:bg-gray-50 transition-colors">
+                  <Icon name="Printer" size={13} />
+                  Печать
+                </button>
+                <button onClick={() => { setNewSourceText(SOURCE_TEMPLATES[newSourceType]); setAddingSource(true); }}
+                  className="flex items-center gap-1.5 bg-gray-900 text-white px-4 py-2 rounded-lg text-[12px] font-medium hover:bg-gray-700 transition-colors">
+                  <Icon name="Plus" size={13} />
+                  Добавить
+                </button>
+              </div>
             </div>
 
             {/* Шаблоны */}
@@ -922,6 +948,18 @@ export default function Index() {
                   <p className="text-[11px] text-emerald-700">Минимум выполнен: {sources.length} источников</p>
                 </div>
               )}
+            </div>
+
+            {/* Скрытый блок для печати */}
+            <div id="print-sources" style={{ display: "none" }}>
+              <p style={{ textAlign: "center", fontWeight: "bold", textTransform: "uppercase", marginBottom: "24pt" }}>
+                СПИСОК ИСПОЛЬЗОВАННЫХ ИСТОЧНИКОВ
+              </p>
+              {sources.map((s, i) => (
+                <p key={s.id} style={{ marginBottom: "12pt", textIndent: "0" }}>
+                  {i + 1}. {s.text}
+                </p>
+              ))}
             </div>
 
             {/* Шаблоны оформления */}
